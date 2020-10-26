@@ -75,4 +75,30 @@ public class AddProductServletTest {
         assertEquals(15, products.get(2).getPrice());
     }
 
+    @Test
+    public void addManyTestWithRepetitions() throws IOException {
+        makeRequest("potato", 5);
+        makeRequest("tomato", 10);
+        makeRequest("onion", 15);
+        makeRequest("potato", 15);
+        makeRequest("tomato", 100);
+        makeRequest("onion", 150);
+
+        List<ProductItem> products = DatabaseTestsUtil.getProductsFromDatabase();
+        assertEquals("OK\nOK\nOK\nOK\nOK\nOK\n", myWriter.toString());
+        assertEquals(6, products.size());
+        assertEquals("potato", products.get(0).getName());
+        assertEquals(5, products.get(0).getPrice());
+        assertEquals("tomato", products.get(1).getName());
+        assertEquals(10, products.get(1).getPrice());
+        assertEquals("onion", products.get(2).getName());
+        assertEquals(15, products.get(2).getPrice());
+        assertEquals("potato", products.get(3).getName());
+        assertEquals(15, products.get(3).getPrice());
+        assertEquals("tomato", products.get(4).getName());
+        assertEquals(100, products.get(4).getPrice());
+        assertEquals("onion", products.get(5).getName());
+        assertEquals(150, products.get(5).getPrice());
+    }
+
 }

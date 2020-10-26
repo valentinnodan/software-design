@@ -40,7 +40,7 @@ public class GetProductsServletTest {
     }
 
     @Test
-    public void getTest() throws IOException {
+    public void getFromSimpleTableTest() throws IOException {
         DatabaseTestsUtil.addTestingProductsToDatabase(Arrays.asList(new ProductItem("potato", 5),
                 new ProductItem("tomato", 10),
                 new ProductItem("onion", 15)));
@@ -54,6 +54,29 @@ public class GetProductsServletTest {
                 "potato\t5</br>\n" +
                 "tomato\t10</br>\n" +
                 "onion\t15</br>\n" +
+                "</body></html>\n", myWriter.toString());
+        assertEquals(products.size(), productsAfter.size());
+    }
+
+    @Test
+    public void getFromTableWithRepetitionsTest() throws IOException {
+        DatabaseTestsUtil.addTestingProductsToDatabase(Arrays.asList(new ProductItem("potato", 5),
+                new ProductItem("tomato", 10),
+                new ProductItem("onion", 15),
+                new ProductItem("tomato", 100),
+                new ProductItem("onion", 5)));
+        when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
+        List<ProductItem> products = DatabaseTestsUtil.getProductsFromDatabase();
+
+        getServlet.doGet(myRequest, myResponse);
+
+        List<ProductItem> productsAfter = DatabaseTestsUtil.getProductsFromDatabase();
+        assertEquals("<html><body>\n" +
+                "potato\t5</br>\n" +
+                "tomato\t10</br>\n" +
+                "onion\t15</br>\n" +
+                "tomato\t100</br>\n" +
+                "onion\t5</br>\n" +
                 "</body></html>\n", myWriter.toString());
         assertEquals(products.size(), productsAfter.size());
     }

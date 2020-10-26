@@ -1,14 +1,16 @@
-package ru.akirakozov.sd.refactoring.utils;
+package ru.akirakozov.sd.refactoring.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-public class ProductsDatabaseUtil {
-    public static void insertToDB(String name, long price){
+public class ProductsDatabase {
+    public void insertToDB(String name, long price) {
         try {
             try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
                 String sql = "INSERT INTO PRODUCT " +
@@ -22,7 +24,7 @@ public class ProductsDatabaseUtil {
         }
     }
 
-    public static List<String> getAllProductsFromDB() {
+    public List<String> getAllProductsFromDB() {
         List<String> res = new ArrayList<>();
         try {
             try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
@@ -30,8 +32,8 @@ public class ProductsDatabaseUtil {
                 ResultSet rs = stmt.executeQuery("SELECT * FROM PRODUCT");
 
                 while (rs.next()) {
-                    String  name = rs.getString("name");
-                    int price  = rs.getInt("price");
+                    String name = rs.getString("name");
+                    int price = rs.getInt("price");
                     res.add(name + "\t" + price + "</br>");
                 }
 
@@ -45,37 +47,49 @@ public class ProductsDatabaseUtil {
         return res;
     }
 
-    public static String selectFromDB(String command, String sqlCommand) {
-        String res = "";
+    public List<String> selectFromDB(String sqlCommand, List<Integer> resColumns, boolean asInt) {
+        List<String> res = new ArrayList<>();
         try {
             try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
                 Statement stmt = c.createStatement();
                 ResultSet rs = stmt.executeQuery(sqlCommand);
-
-                if (command == "min" || command == "max") {
-                    while (rs.next()) {
-                        String  name = rs.getString("name");
-                        int price  = rs.getInt("price");
-                        res = name + "\t" + price + "</br>";
-                    }
-                } else {
-                    if (rs.next()) {
-                        res = rs.getInt(1) + "";
-                    }
+                while (rs.next()) {
+                    for (int columnNumber : resColumns)
+                        if (asInt) {
+                            res.add(rs.getInt(columnNumber) + "");
+                        } else {
+                            res.add(rs.getString(columnNumber));
+                        }
                 }
-
-
                 rs.close();
                 stmt.close();
             }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return res;
     }
 
-//    public static String max() {
-//        return selectFromDB("SELECT * FROM PRODUCT ORDER BY PRICE DESC LIMIT 1")
-//    }
+    private String getStringRepresentationOfRow(List<String> row) {
+        if (row.size() == 0) {
+            return "";
+        }
+        return row.get(0) + "\t" + row.get(1) + "</br>";
+    }
+
+    public String max() {
+        return getStringRepresentationOfRow(selectFromDB("SELECT * FROM PRODUCT ORDER BY PRICE DESC LIMIT 1", Arrays.asList(2, 3), false));
+    }
+
+    public String min() {
+        return getStringRepresentationOfRow(selectFromDB("SELECT * FROM PRODUCT ORDER BY PRICE LIMIT 1", Arrays.asList(2, 3), false));
+    }
+
+    public String sum() {
+        return selectFromDB("SELECT SUM(price) FROM PRODUCT", Collections.singletonList(1), true).get(0);
+    }
+
+    public String count() {
+        return selectFromDB("SELECT COUNT(*) FROM PRODUCT", Collections.singletonList(1), true).get(0);
+    }
 }

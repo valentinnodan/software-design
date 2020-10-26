@@ -1,6 +1,7 @@
 package ru.akirakozov.sd.refactoring.servlet;
 
-import ru.akirakozov.sd.refactoring.utils.ProductsDatabaseUtil;
+import ru.akirakozov.sd.refactoring.database.ProductsDatabase;
+import ru.akirakozov.sd.refactoring.html.HtmlBuilder;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -11,36 +12,34 @@ import java.io.IOException;
  * @author akirakozov
  */
 public class QueryServlet extends HttpServlet {
+    ProductsDatabase database = new ProductsDatabase();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String command = request.getParameter("command");
 
         String res;
-        response.getWriter().println("<html><body>");
+        HtmlBuilder builder = new HtmlBuilder();
         if ("max".equals(command)) {
-            response.getWriter().println("<h1>Product with max price: </h1>");
-            res = ProductsDatabaseUtil.selectFromDB(command, "SELECT * FROM PRODUCT ORDER BY PRICE DESC LIMIT 1");
-            if (!res.equals("")) {
-                response.getWriter().println(res);
-            }
+            builder.addH1("Product with max price: ");
+            res = database.max();
+            builder.addContent(res);
         } else if ("min".equals(command)) {
-            response.getWriter().println("<h1>Product with min price: </h1>");
-            res = ProductsDatabaseUtil.selectFromDB(command, "SELECT * FROM PRODUCT ORDER BY PRICE LIMIT 1");
-            if (!res.equals("")) {
-                response.getWriter().println(res);
-            }
+            builder.addH1("Product with min price: ");
+            res = database.min();
+            builder.addContent(res);
         } else if ("sum".equals(command)) {
-            response.getWriter().println("Summary price: ");
-            res = ProductsDatabaseUtil.selectFromDB(command, "SELECT SUM(price) FROM PRODUCT");
-            response.getWriter().println(res);
+            builder.addContent("Summary price: ");
+            res = database.sum();
+            builder.addContent(res);
         } else if ("count".equals(command)) {
-            response.getWriter().println("Number of products: ");
-            res = ProductsDatabaseUtil.selectFromDB(command, "SELECT COUNT(*) FROM PRODUCT");
-            response.getWriter().println(res);
+            builder.addContent("Number of products: ");
+            res = database.count();
+            builder.addContent(res);
         } else {
-            response.getWriter().println("Unknown command: " + command);
+            builder.addContent("Unknown command: " + command);
         }
-        response.getWriter().println("</body></html>");
+        response.getWriter().println(builder.toString());
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
     }

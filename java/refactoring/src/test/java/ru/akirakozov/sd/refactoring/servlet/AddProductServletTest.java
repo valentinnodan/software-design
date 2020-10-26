@@ -43,12 +43,12 @@ public class AddProductServletTest {
     private void makeRequest(String name, int price) throws IOException {
         when(myRequest.getParameter("name")).thenReturn(name);
         when(myRequest.getParameter("price")).thenReturn(price + "");
+        when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
         addServlet.doGet(myRequest, myResponse);
     }
 
     @Test
     public void addOneTest() throws IOException {
-        when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
         makeRequest("potato", 5);
 
         List<ProductItem> products = DatabaseTestsUtil.getProductsFromDatabase();
@@ -60,7 +60,6 @@ public class AddProductServletTest {
 
     @Test
     public void addManyTest() throws IOException {
-        when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
         makeRequest("potato", 5);
         makeRequest("tomato", 10);
         makeRequest("onion", 15);

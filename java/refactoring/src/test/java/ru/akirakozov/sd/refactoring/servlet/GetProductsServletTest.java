@@ -34,12 +34,10 @@ public class GetProductsServletTest {
         DatabaseTestsUtil.initTable();
     }
 
-
     @After
     public void after() {
         DatabaseTestsUtil.dropTable();
     }
-
 
     @Test
     public void getTest() throws IOException {

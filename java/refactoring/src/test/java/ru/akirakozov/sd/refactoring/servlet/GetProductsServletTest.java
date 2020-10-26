@@ -39,10 +39,18 @@ public class GetProductsServletTest {
                     " PRICE          INT     NOT NULL)";
             Statement stmt = c.createStatement();
             stmt.executeUpdate(sql);
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    private void addTestingProducts() {
+        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
+            Statement stmt;
 
             String name = "potato";
             int price = 5;
-            sql = "INSERT INTO PRODUCT " +
+            String sql = "INSERT INTO PRODUCT " +
                     "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
             stmt = c.createStatement();
             stmt.executeUpdate(sql);
@@ -100,6 +108,7 @@ public class GetProductsServletTest {
 
     @Test
     public void getTest() throws IOException {
+        addTestingProducts();
         when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
         List<ProductItem> products = getProducts();
 
@@ -110,6 +119,19 @@ public class GetProductsServletTest {
                 "potato\t5</br>\n" +
                 "tomato\t10</br>\n" +
                 "onion\t15</br>\n" +
+                "</body></html>\n", myWriter.toString());
+        assertEquals(products.size(), productsAfter.size());
+    }
+
+    @Test
+    public void getFromEmptyTest() throws IOException {
+        when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
+        List<ProductItem> products = getProducts();
+
+        getServlet.doGet(myRequest, myResponse);
+
+        List<ProductItem> productsAfter = getProducts();
+        assertEquals("<html><body>\n" +
                 "</body></html>\n", myWriter.toString());
         assertEquals(products.size(), productsAfter.size());
     }

@@ -12,8 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.sql.*;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -32,89 +31,27 @@ public class GetProductsServletTest {
         MockitoAnnotations.initMocks(this);
         getServlet = new GetProductsServlet();
         myWriter = new StringWriter();
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            String sql = "CREATE TABLE IF NOT EXISTS PRODUCT" +
-                    "(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
-                    " NAME           TEXT    NOT NULL, " +
-                    " PRICE          INT     NOT NULL)";
-            Statement stmt = c.createStatement();
-            stmt.executeUpdate(sql);
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+        DatabaseTestsUtil.initTable();
     }
 
-    private void addTestingProducts() {
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            Statement stmt;
-
-            String name = "potato";
-            int price = 5;
-            String sql = "INSERT INTO PRODUCT " +
-                    "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
-            stmt = c.createStatement();
-            stmt.executeUpdate(sql);
-
-            name = "tomato";
-            price = 10;
-            sql = "INSERT INTO PRODUCT " +
-                    "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
-            stmt = c.createStatement();
-            stmt.executeUpdate(sql);
-
-            name = "onion";
-            price = 15;
-            sql = "INSERT INTO PRODUCT " +
-                    "(NAME, PRICE) VALUES (\"" + name + "\"," + price + ")";
-            stmt = c.createStatement();
-            stmt.executeUpdate(sql);
-
-            stmt.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-    }
 
     @After
     public void after() {
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            String sql = "DROP TABLE PRODUCT";
-            Statement stmt = c.createStatement();
-
-            stmt.executeUpdate(sql);
-            stmt.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+        DatabaseTestsUtil.dropTable();
     }
 
-    private List<ProductItem> getProducts() {
-        List<ProductItem> products = new ArrayList<>();
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            Statement stmt = c.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM PRODUCT");
-            while (rs.next()) {
-                String name = rs.getString("name");
-                int price = rs.getInt("price");
-                products.add(new ProductItem(name, price));
-            }
-            rs.close();
-            stmt.close();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return products;
-    }
 
     @Test
     public void getTest() throws IOException {
-        addTestingProducts();
+        DatabaseTestsUtil.addTestingProductsToDatabase(Arrays.asList(new ProductItem("potato", 5),
+                new ProductItem("tomato", 10),
+                new ProductItem("onion", 15)));
         when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
-        List<ProductItem> products = getProducts();
+        List<ProductItem> products = DatabaseTestsUtil.getProductsFromDatabase();
 
         getServlet.doGet(myRequest, myResponse);
 
-        List<ProductItem> productsAfter = getProducts();
+        List<ProductItem> productsAfter = DatabaseTestsUtil.getProductsFromDatabase();
         assertEquals("<html><body>\n" +
                 "potato\t5</br>\n" +
                 "tomato\t10</br>\n" +
@@ -126,11 +63,11 @@ public class GetProductsServletTest {
     @Test
     public void getFromEmptyTest() throws IOException {
         when(myResponse.getWriter()).thenReturn(new PrintWriter(myWriter));
-        List<ProductItem> products = getProducts();
+        List<ProductItem> products = DatabaseTestsUtil.getProductsFromDatabase();
 
         getServlet.doGet(myRequest, myResponse);
 
-        List<ProductItem> productsAfter = getProducts();
+        List<ProductItem> productsAfter = DatabaseTestsUtil.getProductsFromDatabase();
         assertEquals("<html><body>\n" +
                 "</body></html>\n", myWriter.toString());
         assertEquals(products.size(), productsAfter.size());

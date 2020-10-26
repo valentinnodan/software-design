@@ -45,6 +45,7 @@ public class QueryServletTest {
         queryServlet.doGet(myRequest, myResponse);
     }
 
+
     @Test
     public void minForEmptyTableTest() throws IOException {
         makeRequest("min");
@@ -91,6 +92,16 @@ public class QueryServletTest {
         DatabaseTestsUtil.addTestingProductsToDatabase(Arrays.asList(new ProductItem("potato", 5),
                 new ProductItem("tomato", 10),
                 new ProductItem("onion", 15)));
+    }
+
+    @Test
+    public void incorrectRequestTest() throws IOException {
+        createSimpleTable();
+        makeRequest("som");
+
+        assertEquals("<html><body>\n" +
+                "Unknown command: som\n" +
+                "</body></html>\n", myWriter.toString());
     }
 
     @Test

@@ -20,13 +20,13 @@ public class QueryServlet extends HttpServlet {
         if ("max".equals(command)) {
             response.getWriter().println("<h1>Product with max price: </h1>");
             res = ProductsDatabaseUtil.selectFromDB(command, "SELECT * FROM PRODUCT ORDER BY PRICE DESC LIMIT 1");
-            if (res != "") {
+            if (!res.equals("")) {
                 response.getWriter().println(res);
             }
         } else if ("min".equals(command)) {
             response.getWriter().println("<h1>Product with min price: </h1>");
             res = ProductsDatabaseUtil.selectFromDB(command, "SELECT * FROM PRODUCT ORDER BY PRICE LIMIT 1");
-            if (res != "") {
+            if (!res.equals("")) {
                 response.getWriter().println(res);
             }
         } else if ("sum".equals(command)) {
